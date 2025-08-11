@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AMZ流量关联关系分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 外部CSS文件引用 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 帮助按钮 -->
+    <button class="help-btn" id="helpBtn">
+        <i class="fas fa-question"></i>
+    </button>
+    
+    <div class="header">
+        <h1><i class="fas fa-project-diagram"></i> AMZ竞品流量关联分析系统</h1>
+        <p>上传JSON文件可视化竞品流量关联关系</p>
+        
+        <div class="file-upload-container">
+            <button class="file-upload-btn" id="upload-btn">
+                <i class="fas fa-file-upload"></i> 选择JSON文件
+            </button>
+            <input type="file" id="file-input" accept=".json">
+            <div class="file-name" id="file-name">
+                <i class="fas fa-file"></i> 未选择文件
+            </div>
+            <button class="btn" id="analyze-btn" disabled>
+                <i class="fas fa-chart-network"></i> 开始分析
+            </button>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <!-- 搜索和统计面板 -->
+        <div class="search-panel">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索ASIN或商品标题...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <button class="btn secondary" id="filter-btn">
+                <i class="fas fa-filter"></i> 高级筛选
+            </button>
+        </div>
+        
+        <!-- 统计卡片 -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>商品总数</h3>
+                <div class="stat-value" id="node-count">0</div>
+                <div class="stat-sub">个商品</div>
+            </div>
+            <div class="stat-card">
+                <h3>关联关系</h3>
+                <div class="stat-value" id="link-count">0</div>
+                <div class="stat-sub">个关系</div>
+            </div>
+            <div class="stat-card">
+                <h3>最高关联度</h3>
+                <div class="stat-value" id="max-links">0</div>
+                <div class="stat-sub">个连接</div>
+            </div>
+            <div class="stat-card">
+                <h3>平均深度</h3>
+                <div class="stat-value" id="avg-depth">0</div>
+                <div class="stat-sub">层级</div>
+            </div>
+        </div>
+        
+        <!-- 主面板：左右布局结构 -->
+        <div class="main-panel">
+            <!-- 左侧：商品关系网络图 -->
+            <div class="chart-container network-chart">
+                <div class="chart-title">
+                    <span><i class="fas fa-network-wired"></i> 商品关系网络图</span>
+                    <div class="controls">
+                        <button class="btn" id="reset-btn" disabled>
+                            <i class="fas fa-sync"></i> 重置视图
+                        </button>
+                        <button class="btn secondary" id="layout-btn" disabled>
+                            <i class="fas fa-sitemap"></i> 优化布局
+                        </button>
+                        <button class="btn secondary" id="toggle-labels">
+                            <i class="fas fa-tag"></i> 切换标签
+                        </button>
+                    </div>
+                </div>
+                <div id="main-network">
+                    <div class="empty-state">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>等待数据导入</h3>
+                        <p>请上传JSON文件以生成商品关系网络图。JSON文件应包含"nodes"和"links"数据结构。</p>
+                    </div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #CC0C39;"></div>
+                        <span>高关联度</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2ecc71;"></div>
+                        <span>中关联度</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #888c8c;"></div>
+                        <span>低关联度</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6e21;"></div>
+                        <span>核心节点</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧：商品关联树 -->
+            <div class="chart-container tree-chart">
+                <div class="chart-title">
+                    <span><i class="fas fa-sitemap"></i> 商品关联树</span>
+                    <div class="controls">
+                        <button class="btn secondary" id="expand-btn" disabled>
+                            <i class="fas fa-expand"></i> 全部展开
+                        </button>
+                        <button class="btn secondary" id="collapse-btn" disabled>
+                            <i class="fas fa-compress"></i> 全部折叠
+                        </button>
+                    </div>
+                </div>
+                <div id="detail-tree">
+                    <div class="empty-state">
+                        <i class="fas fa-project-diagram"></i>
+                        <h3>数据加载后显示</h3>
+                        <p>上传并分析JSON文件后，此处将显示选定商品的关联关系树。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>AMZ商品流量关联分析系统 © 2025</p>
+    </div>
+
+    <div class="loading-overlay" id="loader" style="display: none;">
+        <div class="spinner"></div>
+        <div class="loading-text">正在分析商品关系数据...</div>
+        <div class="loading-subtext">系统正在解析商品关联关系，并准备可视化展示</div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    
+    <!-- 节点详情面板 -->
+    <div class="node-detail-panel" id="node-detail">
+        <div class="node-detail-header">
+            <div class="node-detail-title">商品详情</div>
+            <button class="close-detail">&times;</button>
+        </div>
+        <div class="node-detail-thumb">
+            <img id="detail-img" src="https://via.placeholder.com/300x200/2c3e50/ecf0f1?text=Product+Image">
+        </div>
+        <div class="node-detail-body">
+            <h3 id="detail-title">商品标题</h3>
+            <div class="node-stats">
+                <div class="node-stat">
+                    <div class="node-stat-value" id="detail-links">0</div>
+                    <div class="node-stat-label">关联数量</div>
+                </div>
+                <div class="node-stat">
+                    <div class="node-stat-value" id="detail-depth">0</div>
+                    <div class="node-stat-label">关联深度</div>
+                </div>
+                <div class="node-stat">
+                    <div class="node-stat-value" id="detail-rank">0</div>
+                    <div class="node-stat-label">排名</div>
+                </div>
+            </div>
+            <div>
+                <button class="node-detail-btn"><p><strong>ASIN:</strong> <span id="detail-asin">B000000000</span></p></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帮助模态框 -->
+    <div class="help-modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-life-ring"></i> 系统使用帮助</h2>
+                <button class="close-modal" id="closeHelpBtn">&times;</button>
+            </div>
+            
+            <div class="help-section">
+                <h3><i class="fas fa-file-import"></i> 数据导入</h3>
+                <div class="help-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>准备数据文件</h4>
+                            <p>确保您的JSON文件包含有效的商品节点(nodes)和关系链接(links)数据。节点应包含id、title等基本信息。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>上传文件</h4>
+                            <p>点击"选择JSON文件"按钮选择您的数据文件，然后点击"开始分析"按钮导入数据。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>数据验证</h4>
+                            <p>系统会自动验证数据格式，如果数据格式不正确，会显示错误信息。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="help-section">
+                <h3><i class="fas fa-project-diagram"></i> 关系图探索</h3>
+                <div class="help-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>网络图交互</h4>
+                            <p>在关系网络图中，您可以点击节点查看详情，拖动节点调整布局，使用滚轮缩放视图。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>关联树导航</h4>
+                            <p>右侧关联树展示选定商品的层级关系。点击节点可以展开/折叠分支。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>视图控制</h4>
+                            <p>使用工具栏按钮可以重置视图、优化布局或切换标签显示。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="help-section">
+                <h3><i class="fas fa-search"></i> 搜索与筛选</h3>
+                <div class="help-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>搜索商品</h4>
+                            <p>在搜索框中输入ASIN或商品标题关键词，系统会高亮显示匹配的商品。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+<script src="script.js"></script>
+</body>
+</html>
