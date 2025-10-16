@@ -157,28 +157,24 @@ body {
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* 主面板布局 - 左右结构 */
 .main-panel {
     display: flex;
     gap: 20px;
     height: calc(100% - 40px);
 }
 
-/* 左侧：商品关系网络图 */
 .network-chart {
     flex: 1;
     height: 90%;
-    min-width: 0; /* 允许 Flex Item 缩小 */
+    min-width: 0; 
 }
 
-/* 右侧：商品关联树 */
 .tree-chart {
     flex: 1;
     height: 90%;
-    min-width: 0; /* 允许 Flex Item 缩小 */
+    min-width: 0; 
 }
 
-/* 新增布局切换类 */
 .main-panel.only-network .network-chart {
     flex: 1; 
     max-width: 100%;
@@ -253,12 +249,9 @@ body {
     box-shadow: 0 6px 15px rgba(231, 76, 60, 0.5);
 }
 
-/* 布局切换下拉框样式调整 */
 #layout-select {
     padding: 7px 14px;
-    /* 继承 .btn.secondary 的样式 */
     color: white; 
-    /* 移除浏览器默认样式并添加自定义箭头 */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -391,7 +384,6 @@ body {
     border-radius: 50%;
 }
 
-/* 空状态提示 */
 .empty-state {
     display: flex;
     flex-direction: column;
@@ -421,7 +413,6 @@ body {
     font-size: 0.95rem;
 }
 
-/* 搜索面板 */
 .search-panel {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
@@ -502,7 +493,6 @@ body {
     margin-top: 4px;
 }
 
-/* 节点详情面板 */
 .node-detail-panel {
     position: absolute;
     top: 450px;
@@ -545,15 +535,15 @@ body {
     overflow: hidden;
     margin-bottom: 12px;
     display: flex;
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    align-items: center;
+    justify-content: center;
     background: rgba(255,255,255,0.05); 
 }
 
 .node-detail-thumb img {
-    height: 180px; /* 固定高度为180px */
-    width: auto; /* 宽度自适应保持比例 */
-    max-width: 100%; /* 确保不超过容器宽度 */
+    height: 180px; 
+    width: auto; 
+    max-width: 100%; 
 }
 
 .node-stats {
@@ -599,7 +589,6 @@ body {
     background: rgba(52, 152, 219, 0.4);
 }
 
-/* 调整图表容器高度 */
 #main-network {
     width: 100%;
     height: calc(100% - 40px);
@@ -610,7 +599,6 @@ body {
     height: calc(100% - 40px);
 }
 
-/* 响应式设计 */
 @media (max-width: 1200px) {
     .main-panel {
         flex-direction: column;
@@ -625,7 +613,6 @@ body {
         flex-direction: column;
     }
     
-    /* 响应式下，全屏模式恢复为单列 */
     .main-panel.only-network .network-chart,
     .main-panel.only-tree .tree-chart {
         flex: 1;
@@ -652,7 +639,6 @@ body {
         flex-direction: column;
     }
     
-    /* 修复：移除 #filter-btn 的 100% 宽度设置 */
     #layout-select {
         width: 100%;
     }
@@ -661,3 +647,4 @@ body {
         height: calc(100vh - 130px);
     }
 }
+
